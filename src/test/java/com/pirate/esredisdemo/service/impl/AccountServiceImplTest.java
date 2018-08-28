@@ -111,11 +111,11 @@ public class AccountServiceImplTest {
 
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 //.withQuery(QueryBuilders.queryStringQuery("zhang"))
-                //.withQuery(QueryBuilders.termsQuery("name","zhangsan")) // name=zhangsan
+                    //.withQuery(QueryBuilders.termsQuery("name","zhangsan")) // name=zhangsan
                 //.withQuery(QueryBuilders.fuzzyQuery("name", "zhangsan"))// name like '%zhangsan%'
                 //.withQuery(QueryBuilders.matchQuery("name","zhangsan"))
                 //.withQuery(QueryBuilders.matchQuery("name","zhangsan lisi"))//匹配分词后的任何一个词
-                // .withQuery(QueryBuilders.matchPhraseQuery("name","zhangsan lisi"))//精确匹配分词后的每一个词,位置敏感
+                //.withQuery(QueryBuilders.matchPhraseQuery("name","zhangsan lisi"))//精确匹配分词后的每一个词,位置敏感
                 //.withQuery(QueryBuilders.matchPhraseQuery("name", "zhangsan lisi").slop(1))//slop与词条位置有关
                 //.withQuery(QueryBuilders.matchQuery("name", "zhangsan lisi"))//对查询字符串分词，只要有一个匹配就可以，注意与term的区别
                 .withQuery(must)
