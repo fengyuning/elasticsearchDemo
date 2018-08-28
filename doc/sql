@@ -1,0 +1,16 @@
+drop table if exists account;
+create table `account`(
+	`id` int unsigned NOT NULL AUTO_INCREMENT,
+	`account_number` int unsigned not null,
+	`balance` int unsigned not null,
+	`first_name` char(10) not null default '',
+	`last_name` char(10)  not null default '',
+	`age` smallint unsigned not null,
+	`gender` char(5) not null default '' comment '性别',
+	`address` char(30) not null default '',
+	`employer` char(30) not null default '',
+	`email` char(30) not null default '',
+	`city` char(10) not null default '',
+	`state` char(5) not null default '',
+	primary key(`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='账号表';
