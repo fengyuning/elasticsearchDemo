@@ -1,10 +1,16 @@
 package com.pirate.esredisdemo.controller;
 
+import com.pirate.esredisdemo.dao.EsAccountDao;
 import com.pirate.esredisdemo.domain.AccountDto;
 import com.pirate.esredisdemo.domain.Request;
 import com.pirate.esredisdemo.service.AccountService;
 import com.pirate.esredisdemo.utils.RequestUtils;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -54,5 +60,22 @@ public class TestController {
     public Request dbAccountList2Es() {
         return accountService.dbAccountList2Db();
     }
+
+
+
+
+    
+    @Autowired
+    private EsAccountDao esAccountDao;
+    @GetMapping("test")
+    public Request test() {
+        //分组
+        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("age").field("age.keyword");
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .addAggregation(groupByAge)
+                .build();
+        return RequestUtils.success(esAccountDao.search(searchQuery));
+    }
+
 
 }

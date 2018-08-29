@@ -2,6 +2,7 @@ package com.pirate.esredisdemo.domain;
 
 import com.pirate.esredisdemo.utils.RequestUtils;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * 响应结果
@@ -10,6 +11,7 @@ import lombok.Data;
  * @version 1.0 2018/08/24
  */
 @Data
+@ToString
 public class Request {
     private int code;
     private String msg;

@@ -1,5 +1,6 @@
 package com.pirate.esredisdemo.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.pirate.esredisdemo.dao.AccountDao;
 import com.pirate.esredisdemo.dao.EsAccountDao;
 import com.pirate.esredisdemo.domain.EsAccount;
@@ -10,8 +11,20 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.rest.RestUtils;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.avg.AvgAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.max.MaxAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.min.MinAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.percentiles.PercentileRanksAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.percentiles.PercentilesAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.stats.extended.ExtendedStatsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.junit.Test;
@@ -47,9 +60,8 @@ public class esTest {
         EsAccount esAccount = new EsAccount();
 
         boolean b = esAccountDao.existsById(1);
-        EsAccount index = esAccountDao.index(esAccount);
+        EsAccount index = esAccountDao.index(esAccount);    //update
         esAccountDao.refresh();
-        long count = esAccountDao.count();
         System.out.println("真的难");
     }
 
@@ -72,7 +84,6 @@ public class esTest {
     @Test
     public void delete() {
         ArrayList list = new ArrayList();
-        list.remove()
         Iterable<EsAccount> all = null;
 
         esAccountDao.deleteById(1);
@@ -131,8 +142,6 @@ public class esTest {
      */
     @Test
     public void search() {
-
-
         MatchAllQueryBuilder allQuery = QueryBuilders.matchAllQuery();
         BoolQueryBuilder must = QueryBuilders.boolQuery();
         PageRequest pageRequest = PageRequest.of(0, 10);
@@ -144,7 +153,7 @@ public class esTest {
                 .withQuery(allQuery)            //查询条件
                 .addAggregation(balance)         //聚合
 //                .withFacet()                     //分组
-                .withSort()                      //排序
+//                .withSort()                      //排序
                 .withPageable(pageRequest)       //分页
                 .withHighlightFields(nameField)  //高亮
                 .build();
@@ -154,6 +163,86 @@ public class esTest {
         Page<EsAccount> search3 = esAccountDao.search(searchQuery);
         Page<EsAccount> search4 = esAccountDao.searchSimilar(new EsAccount(), fields, pageRequest);
 
+    }
+
+    /**
+     * 聚合操作
+     */
+    @Test
+    public void Aggregation() {
+
+        /*select min(balance), max(balance),AVG(balance),sum(balance),count(balance) FROM account;
+        {
+            {
+                "aggs":{
+                "minNum":{"min":{"field":"accountNumber"}},
+                "maxBalance":{"max":{"field":"balance"}},
+                "avgBalance":{"avg":{"field":"balance"}},
+                "sumB":{"sum":{"field":"balance"}},
+                "count":{"stats":{"field":"balance"}}   //综合的
+            },
+                "size":1
+            }
+
+        },
+        "size":1
+        }*/
+        MinAggregationBuilder minBalance = AggregationBuilders.min("minBalance").field("balance");
+        MaxAggregationBuilder maxBalance = AggregationBuilders.max("maxBalance").field("balance");
+        AvgAggregationBuilder avgBalance = AggregationBuilders.avg("avgBalance").field("balance");
+        SumAggregationBuilder balanceSum = AggregationBuilders.sum("balanceSum").field("balance");
+        ValueCountAggregationBuilder count = AggregationBuilders.count("count").field("balance"); //指令是value_count
+        // stats 综合多个指标的参数
+        ExtendedStatsAggregationBuilder stats = AggregationBuilders.extendedStats("stats").field("balance");
+        ExtendedStatsAggregationBuilder extendedStats =
+                AggregationBuilders.extendedStats("extendStats").field("balance"); //extended_stats
+        //percentiles 计算百分比 一个算大于该百分比的值 一个算该值所处的位置
+        PercentilesAggregationBuilder percent =
+                AggregationBuilders.percentiles("percentiles").field("balance");
+        PercentileRanksAggregationBuilder percentilesRank =
+                AggregationBuilders.percentileRanks("percentilesRank").field("balance").values(50, 60); //percentile_ranks
+        CardinalityAggregationBuilder ageType =
+                AggregationBuilders.cardinality("ageType").field("age.keyword"); //count(distinct age)
+
+        //分组
+        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("age").field("age.keyword");
+//        AggregationBuilders.geoBounds() 地理位置相关，貌似和我没关系就没研究
+        NativeSearchQuery searchQuery1 = new NativeSearchQueryBuilder()
+//                .addAggregation(minBalance)
+//                .addAggregation(maxBalance)
+//                .addAggregation(avgBalance)
+//                .addAggregation(balanceSum)
+//                .addAggregation(count)
+//                .addAggregation(stats)
+//                .addAggregation(extendedStats)
+//                .addAggregation(percent)
+//                .addAggregation(percentilesRank)
+//                .addAggregation(ageType)
+                .addAggregation(groupByAge)
+                .withPageable(PageRequest.of(0, 1))
+                .build();
+        Page<EsAccount> search1 = esAccountDao.search(searchQuery1);
+        System.err.println(JSONObject.toJSON(search1));
+
+
+        //        QueryBuilder qb = QueryBuilders.termQuery("brand", "heineken");
+//        QueryBuilder qb2 = QueryBuilders.rangeQuery("price").from(5).to(10);
+//        TermsAggregationBuilder field1 = AggregationBuilders.terms("player_count ").field("team");
+//        ValueCountAggregationBuilder field = AggregationBuilders.count("aa");
+//
+//        //相当distint
+//        CardinalityAggregationBuilder productNum = AggregationBuilders.cardinality("productNum").field("productId");
+//        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("num").field("age");
+//
+//        TermsAggregationBuilder groupByCompanyId = AggregationBuilders.terms("companyId").field("companyId")
+//                .order(Terms.Order.aggregation("creativeNum", false));
+//
+//        NativeSearchQuery groupSearch = new NativeSearchQueryBuilder()
+//                .addAggregation(groupByCompanyId)
+//                .build();
+//        Page<EsAccount> search = esAccountDao.search(groupSearch);
+
+        System.out.println("还没结束");
     }
 
 }
