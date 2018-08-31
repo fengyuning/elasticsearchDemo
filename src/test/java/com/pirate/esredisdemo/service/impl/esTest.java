@@ -7,13 +7,13 @@ import com.pirate.esredisdemo.domain.EsAccount;
 import org.elasticsearch.action.search.MultiSearchRequestBuilder;
 import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.client.ElasticsearchClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchAllQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.rest.RestUtils;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.missing.MissingAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.avg.AvgAggregationBuilder;
@@ -22,8 +22,10 @@ import org.elasticsearch.search.aggregations.metrics.max.MaxAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.min.MinAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.percentiles.PercentileRanksAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.percentiles.PercentilesAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.scripted.ScriptedMetricAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.stats.extended.ExtendedStatsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -166,27 +168,11 @@ public class esTest {
     }
 
     /**
-     * 聚合操作
+     * 度量操作 还有很多操作其实也不是很理解，需要不断练习之后才能明白
      */
     @Test
-    public void Aggregation() {
-
-        /*select min(balance), max(balance),AVG(balance),sum(balance),count(balance) FROM account;
-        {
-            {
-                "aggs":{
-                "minNum":{"min":{"field":"accountNumber"}},
-                "maxBalance":{"max":{"field":"balance"}},
-                "avgBalance":{"avg":{"field":"balance"}},
-                "sumB":{"sum":{"field":"balance"}},
-                "count":{"stats":{"field":"balance"}}   //综合的
-            },
-                "size":1
-            }
-
-        },
-        "size":1
-        }*/
+    public void MetricsAggregations() {
+        //min max avg sum count
         MinAggregationBuilder minBalance = AggregationBuilders.min("minBalance").field("balance");
         MaxAggregationBuilder maxBalance = AggregationBuilders.max("maxBalance").field("balance");
         AvgAggregationBuilder avgBalance = AggregationBuilders.avg("avgBalance").field("balance");
@@ -201,11 +187,18 @@ public class esTest {
                 AggregationBuilders.percentiles("percentiles").field("balance");
         PercentileRanksAggregationBuilder percentilesRank =
                 AggregationBuilders.percentileRanks("percentilesRank").field("balance").values(50, 60); //percentile_ranks
-        CardinalityAggregationBuilder ageType =
-                AggregationBuilders.cardinality("ageType").field("age.keyword"); //count(distinct age)
+        //count(distinct age)
+        CardinalityAggregationBuilder ageNum =
+                AggregationBuilders.cardinality("ageNum").field("age.keyword"); //count(distinct age)
 
-        //分组
-        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("age").field("age.keyword");
+        //分组 不知道为什么结果不能转成json
+        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("groupByAge").field("age.keyword").size(3);
+        TermsAggregationBuilder groupByAgeOrdeByNum = AggregationBuilders.terms("groupByAge").field("age.keyword")
+                .order(Terms.Order.term(true));
+        //配合分组使用
+        TopHitsAggregationBuilder top = AggregationBuilders.topHits("top").size(1).explain(true).from(10);
+        ScriptedMetricAggregationBuilder scriptedMetric = AggregationBuilders.scriptedMetric("doc['balance'].value == 40540");
+
 //        AggregationBuilders.geoBounds() 地理位置相关，貌似和我没关系就没研究
         NativeSearchQuery searchQuery1 = new NativeSearchQueryBuilder()
 //                .addAggregation(minBalance)
@@ -217,32 +210,42 @@ public class esTest {
 //                .addAggregation(extendedStats)
 //                .addAggregation(percent)
 //                .addAggregation(percentilesRank)
-//                .addAggregation(ageType)
+//                .addAggregation(ageNum)
                 .addAggregation(groupByAge)
+                .addAggregation(groupByAgeOrdeByNum.subAggregation(ageNum))
                 .withPageable(PageRequest.of(0, 1))
                 .build();
-        Page<EsAccount> search1 = esAccountDao.search(searchQuery1);
-        System.err.println(JSONObject.toJSON(search1));
+        Page<EsAccount> search = esAccountDao.search(searchQuery1);
+//        System.err.println(JSONObject.toJSON(search));
 
-
-        //        QueryBuilder qb = QueryBuilders.termQuery("brand", "heineken");
-//        QueryBuilder qb2 = QueryBuilders.rangeQuery("price").from(5).to(10);
-//        TermsAggregationBuilder field1 = AggregationBuilders.terms("player_count ").field("team");
-//        ValueCountAggregationBuilder field = AggregationBuilders.count("aa");
-//
-//        //相当distint
-//        CardinalityAggregationBuilder productNum = AggregationBuilders.cardinality("productNum").field("productId");
-//        TermsAggregationBuilder groupByAge = AggregationBuilders.terms("num").field("age");
-//
-//        TermsAggregationBuilder groupByCompanyId = AggregationBuilders.terms("companyId").field("companyId")
-//                .order(Terms.Order.aggregation("creativeNum", false));
-//
-//        NativeSearchQuery groupSearch = new NativeSearchQueryBuilder()
-//                .addAggregation(groupByCompanyId)
-//                .build();
-//        Page<EsAccount> search = esAccountDao.search(groupSearch);
-
-        System.out.println("还没结束");
+        System.err.println("end");
     }
 
+    /**
+     *  还有很多需要自己去掌握
+     */
+    @Test
+    public void bucketAggregations(){
+
+        //这个是顺带查询和统计的方式 select avg(balance) from account where age=22 or age=23;
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("age", "22 23");
+        AvgAggregationBuilder avgBalance = AggregationBuilders.avg("avgBalance").field("balance");
+        //filter的方式
+        FilterAggregationBuilder ageFilter = AggregationBuilders.filter("ageFilter", QueryBuilders.termQuery("age","22"));
+        //select count(*) from account where address == ''
+        MissingAggregationBuilder missingAddress = AggregationBuilders.missing("address");
+        NestedAggregationBuilder address = AggregationBuilders.nested("address","address"); //不知道做什么
+
+
+        NativeSearchQuery query = new NativeSearchQueryBuilder()
+//                .withQuery(matchQuery)
+//                .addAggregation(avgBalance)
+//                .addAggregation(ageFilter.subAggregation(avgBalance))
+                .withPageable(PageRequest.of(0,2))
+                .build();
+        Page<EsAccount> search = esAccountDao.search(query);
+        System.err.println(JSONObject.toJSONString(search));
+
+        System.err.println("end");
+    }
 }

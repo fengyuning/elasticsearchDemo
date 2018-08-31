@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -132,5 +133,17 @@ public class AccountServiceImpl implements AccountService {
             }).collect(Collectors.toList());
             esAccountDao.saveAll(collect);
         }
+    }
+
+    @Override
+    public Request getMapGroupByAge() {
+        List<AccountDto> accountDtos = accountDao.selectList(0, 0);
+        Map<Integer, List<AccountDto>> age = accountDtos.stream().collect(Collectors.groupingBy(AccountDto::getAge));
+        return RequestUtils.success(age);
+    }
+
+    @Override
+    public Request test() {
+        return RequestUtils.success(1/0);
     }
 }

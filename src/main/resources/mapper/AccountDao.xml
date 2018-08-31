@@ -30,11 +30,17 @@
     </insert>
 
     <select id="selectList" resultType="com.pirate.esredisdemo.domain.AccountDto">
-        SELECT * FROM account limit #{skip},#{size}
+        SELECT * FROM account
+        <if test="skip != 0 and size!= 0">
+            limit #{skip},#{size}
+        </if>
     </select>
 
     <select id="selectById" resultType="com.pirate.esredisdemo.domain.AccountDto">
         SELECT * from account WHERE id = #{id}
+    </select>
+    <select id="getMapGroupByAge" resultType="com.pirate.esredisdemo.domain.AccountDto">
+         SELECT * FROM account
     </select>
 
     <delete id="deleteById">

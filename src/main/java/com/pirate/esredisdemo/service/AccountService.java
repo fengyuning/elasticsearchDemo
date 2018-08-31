@@ -18,4 +18,7 @@ public interface AccountService {
 
     Request dbAccountList2Db();
 
+    Request getMapGroupByAge();
+
+    Request test();
 }

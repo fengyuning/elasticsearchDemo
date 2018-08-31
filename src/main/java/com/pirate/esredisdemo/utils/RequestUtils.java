@@ -43,4 +43,10 @@ public class RequestUtils {
     public static Request fail() {
         return new Request(RequestEnum.FAIL);
     }
+
+    public static Request fail(Object data) {
+        Request request = new Request(RequestEnum.FAIL);
+        request.setDate(data);
+        return request;
+    }
 }
