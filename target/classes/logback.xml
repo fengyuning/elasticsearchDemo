@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="false" scanPeriod="60 seconds" debug="false">
+    <!--<configuration>-->
+    <property name="HOME_PATH" value="C:\javaProject\es-redis-demo\log" scope="CONTEXT"/>
+    <property name="DEFAULT_PATTERN" value="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %level %logger - %msg%n" scope="CONTEXT"/>
+    <property name="MAX_HISTORY" value="14" scope="CONTEXT"/>
+    <property name="LOGGER_LEVEL" value="info"/>
+
+    <!-- 往控制台打印 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>${DEFAULT_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <!-- 把日志打到logstash里 -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>127.0.0.1:9600</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"env":"dev"}</customFields>
+        </encoder>
+        <keepAliveDuration>15 minutes</keepAliveDuration>
+    </appender>
+
+    <!-- 定义logger -->
+    <logger name="commonLogger" level="${LOGGER_LEVEL}" additivity="false">
+        <appender-ref ref="LOGSTASH"/>
+    </logger>
+
+    <logger name="bankLogger" level="${LOGGER_LEVEL}" additivity="false">
+        <appender-ref ref="LOGSTASH"/>
+    </logger>
+
+    <root level="${LOGGER_LEVEL}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+</configuration>

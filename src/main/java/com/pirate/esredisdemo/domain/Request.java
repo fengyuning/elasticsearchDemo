@@ -15,7 +15,7 @@ import lombok.ToString;
 public class Request {
     private int code;
     private String msg;
-    private Object date;
+    private Object data;
 
     public Request(RequestUtils.RequestEnum requestEnum) {
         this.code = requestEnum.getCode();

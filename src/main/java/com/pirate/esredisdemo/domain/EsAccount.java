@@ -14,7 +14,6 @@ import org.springframework.data.elasticsearch.annotations.Document;
  * @version 1.0 2018/08/27
  */
 @Document(indexName = "bank", type = "account")
-@ToString
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

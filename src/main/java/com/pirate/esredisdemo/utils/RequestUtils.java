@@ -36,7 +36,7 @@ public class RequestUtils {
 
     public static Request success(Object data) {
         Request request = new Request(RequestEnum.SUCCESS);
-        request.setDate(data);
+        request.setData(data);
         return request;
     }
 
@@ -46,7 +46,7 @@ public class RequestUtils {
 
     public static Request fail(Object data) {
         Request request = new Request(RequestEnum.FAIL);
-        request.setDate(data);
+        request.setData(data);
         return request;
     }
 }

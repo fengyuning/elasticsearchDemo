@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.pirate.esredisdemo.domain.Request;
 import com.pirate.esredisdemo.utils.RequestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;

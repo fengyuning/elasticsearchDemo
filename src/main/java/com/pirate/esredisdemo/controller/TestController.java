@@ -1,30 +1,22 @@
 package com.pirate.esredisdemo.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.pirate.esredisdemo.dao.AccountDao;
 import com.pirate.esredisdemo.dao.EsAccountDao;
 import com.pirate.esredisdemo.domain.AccountDto;
 import com.pirate.esredisdemo.domain.EsAccount;
 import com.pirate.esredisdemo.domain.Request;
 import com.pirate.esredisdemo.service.AccountService;
+import com.pirate.esredisdemo.utils.LogUtil;
 import com.pirate.esredisdemo.utils.RequestUtils;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
 
 @RestController
 public class TestController {
+    private static final Logger logger = LogUtil.COMMON_LOGGER;
 
     @Autowired
     private AccountService accountService;
@@ -72,6 +64,31 @@ public class TestController {
     @GetMapping("getMapGroupByAge")
     public Request getMapGroupByAge(){
         return accountService.getMapGroupByAge();
+    }
+
+    @Autowired
+    private AccountDao accountDao;
+    @GetMapping("testLogstash")
+    public Request testLog(){
+//        logger.info("往logstash打日志");
+
+        //测试打一条数据
+        AccountDto accountDto = accountDao.selectById(12499);
+        EsAccount esAccount = new EsAccount();
+        esAccount.setAccountNumber(accountDto.getAccountNumber());
+        esAccount.setBalance(accountDto.getBalance());
+        esAccount.setFirstName(accountDto.getFirstName());
+        esAccount.setLastName(accountDto.getLastName());
+        esAccount.setAge(accountDto.getAge());
+        esAccount.setGender(accountDto.getGender());
+        esAccount.setAddress(accountDto.getAddress());
+        esAccount.setEmployer(accountDto.getEmployer());
+        esAccount.setEmail(accountDto.getEmail());
+        esAccount.setCity(accountDto.getCity());
+        esAccount.setState(accountDto.getState());
+        String string = JSONObject.toJSONString(esAccountDao);
+        LogUtil.BANK_LOGGER.info(string);
+        return RequestUtils.success(string);
     }
 
 
