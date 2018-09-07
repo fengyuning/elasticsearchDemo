@@ -1,9 +1,11 @@
 # 说明:
-### 该项目是个人测试ElasticSearch java API的demo
+### 该项目是个人搭建ELK分析收集日志系统的demo(测试一些ES java API)
 
 ### 需要的环境
 > * jdk8
-> * es 6.3.2
+> * es 6.3.2 
+> * logstash 6.4.0
+> * kibana 6.3.2
 > * mysql 随意
 > #### 该项目采用lombok插件自动为javaBean生成Getter,Setter,请先在IDE中安装该插件.
 > ###### IDEA中的安装方法:

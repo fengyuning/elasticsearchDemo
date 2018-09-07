@@ -12,7 +12,10 @@ import com.pirate.esredisdemo.utils.RequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 @RestController
 public class TestController {
@@ -62,39 +65,32 @@ public class TestController {
     }
 
     @GetMapping("getMapGroupByAge")
-    public Request getMapGroupByAge(){
+    public Request getMapGroupByAge() {
         return accountService.getMapGroupByAge();
     }
 
-    @Autowired
-    private AccountDao accountDao;
     @GetMapping("testLogstash")
-    public Request testLog(){
-//        logger.info("往logstash打日志");
+    public Request testLog() {
+        logger.info("往logstash打日志");
+        return RequestUtils.success();
+    }
 
-        //测试打一条数据
-        AccountDto accountDto = accountDao.selectById(12499);
-        EsAccount esAccount = new EsAccount();
-        esAccount.setAccountNumber(accountDto.getAccountNumber());
-        esAccount.setBalance(accountDto.getBalance());
-        esAccount.setFirstName(accountDto.getFirstName());
-        esAccount.setLastName(accountDto.getLastName());
-        esAccount.setAge(accountDto.getAge());
-        esAccount.setGender(accountDto.getGender());
-        esAccount.setAddress(accountDto.getAddress());
-        esAccount.setEmployer(accountDto.getEmployer());
-        esAccount.setEmail(accountDto.getEmail());
-        esAccount.setCity(accountDto.getCity());
-        esAccount.setState(accountDto.getState());
-        String string = JSONObject.toJSONString(esAccountDao);
-        LogUtil.BANK_LOGGER.info(string);
-        return RequestUtils.success(string);
+    @Autowired
+    private JedisPool jedisPool;
+
+    @GetMapping("testRedis")
+    public Request testRedis() {
+        Jedis jedis = jedisPool.getResource();
+        String set = jedis.set("问题大", "真的吗");
+        String qwqw = jedis.get("问题大");
+        return RequestUtils.success(qwqw);
     }
 
 
     //------------------------------------------------------------
     @Autowired
     private EsAccountDao esAccountDao;
+
     @GetMapping("test")
     public Request test() {
         //分组
@@ -110,6 +106,7 @@ public class TestController {
 //        Spliterator<EsAccount> spliterator = search.spliterator();
 //
 //        return RequestUtils.success(search);
+
         return accountService.test();
     }
 
