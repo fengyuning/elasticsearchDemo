@@ -1,5 +1,6 @@
 package com.pirate.esredisdemo.service.impl;
 
+import com.pirate.esredisdemo.dao.EsAccountDao;
 import com.pirate.esredisdemo.domain.EsAccount;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -160,7 +161,15 @@ public class AccountServiceImplTest {
 
         System.out.println(studentList);
 
+    }
 
+    @Autowired
+    private EsAccountDao esAccountDao;
+    @Test
+    public void updateSpider() {
+        //select * from account group by age ORDER BY account_number desc LIMIT 10;
+//        new Sort.Order()
+//        esAccountDao.findAll()
     }
 
 }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -75,21 +76,23 @@ public class TestController {
         return RequestUtils.success();
     }
 
-    @Autowired
-    private JedisPool jedisPool;
-
-    @GetMapping("testRedis")
-    public Request testRedis() {
-        Jedis jedis = jedisPool.getResource();
-        String set = jedis.set("问题大", "真的吗");
-        String qwqw = jedis.get("问题大");
-        return RequestUtils.success(qwqw);
-    }
+//    @Autowired
+//    private JedisPool jedisPool;
+//
+//    @GetMapping("testRedis")
+//    public Request testRedis() {
+//        Jedis jedis = jedisPool.getResource();
+//        String set = jedis.set("问题大", "真的吗");
+//        String qwqw = jedis.get("问题大");
+//        return RequestUtils.success(qwqw);
+//    }
 
 
     //------------------------------------------------------------
     @Autowired
     private EsAccountDao esAccountDao;
+    @Autowired
+    private KafkaTemplate<String,String> kafkaTemplate;
 
     @GetMapping("test")
     public Request test() {
